@@ -14,11 +14,20 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
 
-// Middleware
+const cors = require('cors');
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
 }));
+
+// Middleware
+// app.use(cors({
+//     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+//     credentials: true
+// }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(uploadsDir));
