@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import './Auth.css';
 
@@ -10,8 +9,10 @@ const Login = () => {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+
+  // ✅ Backend URL (Render or local)
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,16 +23,29 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await login(formData);
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await res.json();
       toast.success('Login successful!');
-      
-      if (response.user.role === 'doctor') {
+
+      if (data.user.role === 'doctor') {
         navigate('/doctor/dashboard');
       } else {
         navigate('/patient/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Login failed');
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
