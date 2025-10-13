@@ -47,6 +47,10 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running' });
 });
 
+app.get('/', (req, res) => {
+    res.send('✅ Healthcare Backend is running!');
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
@@ -57,7 +61,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
     try {
         await initDatabase();
-        
+
         app.listen(PORT, () => {
             console.log('\n🏥 Healthcare Appointment System Backend');
             console.log('==========================================');
