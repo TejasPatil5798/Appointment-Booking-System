@@ -20,6 +20,9 @@ const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // ✅ Use your Render backend URL
+  const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://appointment-booking-system1.onrender.com';
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -29,16 +32,28 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await register(formData);
+      // ✅ Send request directly to backend
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Registration failed');
+      }
+
+      const data = await response.json();
       toast.success('Registration successful!');
-      
-      if (response.user.role === 'doctor') {
+
+      if (data.user.role === 'doctor') {
         navigate('/doctor/dashboard');
       } else {
         navigate('/patient/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Registration failed');
+      toast.error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
