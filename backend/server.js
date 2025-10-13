@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
     res.send('✅ Healthcare Backend is running!');
 });
 
-// Error handling middleware
+// Error handling middleware.
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: err.message || 'Something went wrong!' });
