@@ -1,17 +1,21 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Create a new PostgreSQL connection pool
 const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || undefined,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false, // ✅ Needed for Render
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
 });
 
+// Connection events
 pool.on('connect', () => {
     console.log('✅ Database connected');
 });
@@ -23,7 +27,6 @@ pool.on('error', (err) => {
 // Initialize database tables
 const initDatabase = async () => {
     try {
-        // Users table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 user_id SERIAL PRIMARY KEY,
@@ -36,7 +39,6 @@ const initDatabase = async () => {
             )
         `);
 
-        // Doctors table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS doctors (
                 doctor_id SERIAL PRIMARY KEY,
@@ -51,7 +53,6 @@ const initDatabase = async () => {
             )
         `);
 
-        // Appointments table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS appointments (
                 appointment_id SERIAL PRIMARY KEY,
@@ -66,7 +67,6 @@ const initDatabase = async () => {
             )
         `);
 
-        // Prescriptions table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS prescriptions (
                 prescription_id SERIAL PRIMARY KEY,
@@ -79,7 +79,6 @@ const initDatabase = async () => {
 
         console.log('✅ Database tables initialized');
 
-        // Seed demo data if tables are empty
         const { rows } = await pool.query('SELECT COUNT(*) as count FROM users');
         if (parseInt(rows[0].count) === 0) {
             await seedDemoData();
@@ -93,39 +92,35 @@ const initDatabase = async () => {
 // Seed demo data
 const seedDemoData = async () => {
     const bcrypt = require('bcryptjs');
-    
     try {
-        // Create demo doctor
         const docPassword = await bcrypt.hash('doctor123', 10);
         const doctorResult = await pool.query(
-            `INSERT INTO users (name, email, password, role, phone) 
+            `INSERT INTO users (name, email, password, role, phone)
              VALUES ($1, $2, $3, $4, $5) RETURNING user_id`,
             ['Dr. Sarah Johnson', 'doctor@healthcare.com', docPassword, 'doctor', '9876543210']
         );
 
         await pool.query(
-            `INSERT INTO doctors (user_id, specialization, qualification, experience, availability, consultation_fee, rating) 
+            `INSERT INTO doctors (user_id, specialization, qualification, experience, availability, consultation_fee, rating)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [doctorResult.rows[0].user_id, 'Cardiologist', 'MBBS, MD (Cardiology)', 10, 'Mon-Fri: 9AM-5PM', 500, 4.8]
         );
 
-        // Create demo doctor 2
         const doc2Result = await pool.query(
-            `INSERT INTO users (name, email, password, role, phone) 
+            `INSERT INTO users (name, email, password, role, phone)
              VALUES ($1, $2, $3, $4, $5) RETURNING user_id`,
             ['Dr. Michael Chen', 'doctor2@healthcare.com', docPassword, 'doctor', '9876543211']
         );
 
         await pool.query(
-            `INSERT INTO doctors (user_id, specialization, qualification, experience, availability, consultation_fee, rating) 
+            `INSERT INTO doctors (user_id, specialization, qualification, experience, availability, consultation_fee, rating)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [doc2Result.rows[0].user_id, 'Neurologist', 'MBBS, MD (Neurology)', 8, 'Mon-Sat: 10AM-6PM', 600, 4.9]
         );
 
-        // Create demo patient
         const patPassword = await bcrypt.hash('patient123', 10);
         await pool.query(
-            `INSERT INTO users (name, email, password, role, phone) 
+            `INSERT INTO users (name, email, password, role, phone)
              VALUES ($1, $2, $3, $4, $5)`,
             ['John Doe', 'patient@healthcare.com', patPassword, 'patient', '9876543212']
         );
@@ -134,7 +129,7 @@ const seedDemoData = async () => {
         console.log('   Doctor: doctor@healthcare.com / doctor123');
         console.log('   Patient: patient@healthcare.com / patient123');
     } catch (error) {
-        console.error('Error seeding data:', error);
+        console.error('❌ Error seeding data:', error);
     }
 };
 
