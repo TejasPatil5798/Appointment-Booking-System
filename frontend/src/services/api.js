@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// ✅ Use Vite env variable if available, otherwise fallback to localhost
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// ✅ Add '/api' automatically
+const API_URL = `${API_BASE}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,7 +13,7 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
+// ✅ Attach token automatically
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,26 +22,24 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Auth API
+// ✅ Auth API
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
 };
 
-// Doctors API
+// ✅ Doctors API
 export const doctorsAPI = {
   getAll: () => api.get('/doctors'),
   getById: (id) => api.get(`/doctors/${id}`),
   updateProfile: (data) => api.put('/doctors/profile', data),
 };
 
-// Appointments API
+// ✅ Appointments API
 export const appointmentsAPI = {
   book: (data) => api.post('/appointments/book', data),
   getPatientAppointments: () => api.get('/appointments/patient'),
@@ -46,17 +48,17 @@ export const appointmentsAPI = {
   cancel: (id) => api.delete(`/appointments/${id}/cancel`),
 };
 
-// Prescriptions API
+// ✅ Prescriptions API
 export const prescriptionsAPI = {
-  upload: (formData) => api.post('/prescriptions/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  upload: (formData) =>
+    api.post('/prescriptions/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   get: (appointmentId) => api.get(`/prescriptions/${appointmentId}`),
-  download: (prescriptionId) => api.get(`/prescriptions/download/${prescriptionId}`, {
-    responseType: 'blob',
-  }),
+  download: (prescriptionId) =>
+    api.get(`/prescriptions/download/${prescriptionId}`, {
+      responseType: 'blob',
+    }),
 };
 
 export default api;
