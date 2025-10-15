@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-// ✅ Use Vite env variable if available, otherwise fallback to localhost
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// ✅ Detect environment
+const API_BASE =
+  process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-// ✅ Add '/api' automatically
+// ✅ Add '/api' path
 const API_URL = `${API_BASE}/api`;
 
 const api = axios.create({
@@ -13,7 +14,7 @@ const api = axios.create({
   },
 });
 
-// ✅ Attach token automatically
+// ✅ Automatically attach token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');

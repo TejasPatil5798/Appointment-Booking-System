@@ -21,7 +21,7 @@ const Register = () => {
   const navigate = useNavigate();
 
   // ✅ Use your Render backend URL
-  const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://appointment-booking-system1.onrender.com';
+  const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
